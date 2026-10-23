@@ -18,6 +18,7 @@ a{color:var(--fg);text-decoration:none;opacity:.9}a:hover{opacity:1}
 .section{padding:60px 0}.section h2{margin:0 0 20px}
 .gallery .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
 .card{background:var(--card);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px var(--shadow)}
+.card picture{display:block}
 .card img{display:block;width:100%;height:auto;opacity:0;transition:opacity .6s ease}
 .card img.loaded{opacity:1}
 .features-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
