@@ -163,38 +163,90 @@
     }
   }
 
-  /* Aligne la hauteur des cartes et anime leur arrivée dans le viewport. */
+  /* Hauteur de la plus grande carte appliquée à toutes, pour garder une
+     grille régulière. Toutes les lectures d'abord, puis toutes les
+     écritures : un seul recalcul de mise en page au lieu d'un par carte.
+     N'a besoin d'être refait qu'au chargement et au redimensionnement. */
+  function equalizeCards() {
+    var cards = qsa('.card');
+    var i;
+    for (i = 0; i < cards.length; i++) cards[i].style.minHeight = '';
+    var tallest = 0;
+    for (i = 0; i < cards.length; i++) {
+      tallest = Math.max(tallest, cards[i].offsetHeight);
+    }
+    for (i = 0; i < cards.length; i++) cards[i].style.minHeight = tallest + 'px';
+  }
+
+  /* Anime l'arrivée des cartes dans le viewport. IntersectionObserver fait
+     le calcul de position lui-même, sans rien lire dans le gestionnaire
+     de scroll. Une carte révélée n'est plus observée. */
   function revealCards() {
     var cards = qsa('.card');
-
-    for (var i = 0; i < cards.length; i++) {
-      var rect = cards[i].getBoundingClientRect();
-
-      // Hauteur de la plus grande carte, pour garder une grille régulière.
-      var tallest = 0;
-      var all = qsa('.card');
-      for (var j = 0; j < all.length; j++) {
-        if (all[j].offsetHeight > tallest) {
-          tallest = all[j].offsetHeight;
+    if (!('IntersectionObserver' in window)) {
+      cards.forEach(function (c) { c.classList.add('visible'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        // top < 0 : carte déjà dépassée (page ouverte plus bas, ancre…)
+        if (e.isIntersecting || e.boundingClientRect.top < 0) {
+          e.target.classList.add('visible');
+          io.unobserve(e.target);
         }
-      }
-      cards[i].style.minHeight = tallest + 'px';
+      });
+    }, { rootMargin: '0px 0px -40px 0px' });
+    cards.forEach(function (c) { io.observe(c); });
+  }
 
-      if (rect.top < window.innerHeight - 40) {
-        cards[i].classList.add('visible');
-        cards[i].style.transform = 'translateY(0px)';
-      } else {
-        cards[i].style.transform = 'translateY(24px)';
-      }
-    }
+  /* Les cases du calendrier s'éclairent à l'approche du milieu de l'écran.
+     Toutes les cases d'une même rangée (7 rangées, une par jour de la
+     semaine) ont la même position verticale : on ne calcule donc que
+     7 valeurs, posées en variables CSS sur le calendrier (voir
+     .cal-day:nth-child dans styles.css), au lieu de mesurer et styler
+     371 cases à chaque événement scroll. */
+  var cal = null;
+  var calStep = 0;
 
-    // Les cases du calendrier apparaissent progressivement à l'approche.
-    var jours = qsa('.cal-day');
-    for (var k = 0; k < jours.length; k++) {
-      var box = jours[k].getBoundingClientRect();
-      var d = Math.abs(box.top - window.innerHeight / 2);
-      jours[k].style.opacity = Math.max(0.15, 1 - d / window.innerHeight);
+  function initCalendarFade() {
+    cal = qs('#calendrier');
+    if (!cal || cal.children.length < 2) { cal = null; return; }
+    calStep = cal.children[1].getBoundingClientRect().top -
+              cal.children[0].getBoundingClientRect().top;
+    updateCalendarFade();
+  }
+
+  function updateCalendarFade() {
+    if (!cal) return;
+    var top = cal.getBoundingClientRect().top;
+    var vh = window.innerHeight;
+    for (var r = 0; r < 7; r++) {
+      var d = Math.abs(top + r * calStep - vh / 2);
+      cal.style.setProperty('--o' + r, Math.max(0.15, 1 - d / vh));
     }
+  }
+
+  /* Un seul passage par image affichée, quel que soit le nombre
+     d'événements scroll/resize reçus entre deux. */
+  var scrollPending = false;
+  function onScroll() {
+    if (scrollPending) return;
+    scrollPending = true;
+    requestAnimationFrame(function () {
+      scrollPending = false;
+      updateCalendarFade();
+    });
+  }
+
+  var resizePending = false;
+  function onResize() {
+    if (resizePending) return;
+    resizePending = true;
+    requestAnimationFrame(function () {
+      resizePending = false;
+      equalizeCards();
+      updateCalendarFade();
+    });
   }
 
   /* Affiche les images une fois chargées. */
@@ -214,7 +266,9 @@
     buildKeywordIndex();
     buildActivityCalendar();
     watchImages();
+    equalizeCards();
     revealCards();
+    initCalendarFade();
     var champ = qs('#q');
     if (champ) champ.addEventListener('input', filterGallery);
   }
@@ -226,7 +280,9 @@
     init();
   }
 
-  window.addEventListener('scroll', revealCards);
-  window.addEventListener('resize', revealCards);
-  window.addEventListener('load', revealCards);
+  // passive : on n'appelle jamais preventDefault(), le navigateur peut
+  // donc faire défiler sans attendre la fin du gestionnaire.
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onResize);
+  window.addEventListener('load', onResize);
 })();

@@ -56,6 +56,11 @@ a{color:var(--fg);text-decoration:none;opacity:.9}a:hover{opacity:1}
 .calendar{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,11px);
   grid-auto-columns:11px;gap:3px;width:max-content}
 .cal-day{border-radius:2px;background:var(--lvl0);transition:opacity .25s linear}
+/* Opacité par rangée, calculée dans app.js (updateCalendarFade). */
+.cal-day:nth-child(7n+1){opacity:var(--o0,1)}.cal-day:nth-child(7n+2){opacity:var(--o1,1)}
+.cal-day:nth-child(7n+3){opacity:var(--o2,1)}.cal-day:nth-child(7n+4){opacity:var(--o3,1)}
+.cal-day:nth-child(7n+5){opacity:var(--o4,1)}.cal-day:nth-child(7n+6){opacity:var(--o5,1)}
+.cal-day:nth-child(7n){opacity:var(--o6,1)}
 /* Rampe séquentielle à teinte unique, du plus sombre au plus clair. */
 :root{--lvl0:#1b1f44;--lvl1:#3a2f7a;--lvl2:#55439f;--lvl3:#6f57c6;--lvl4:#8f7bff}
 .cal-day[data-n="1"]{background:var(--lvl1)}
