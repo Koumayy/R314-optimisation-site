@@ -201,18 +201,23 @@
 
   /* Les cases du calendrier s'éclairent à l'approche du milieu de l'écran.
      Toutes les cases d'une même rangée (7 rangées, une par jour de la
-     semaine) ont la même position verticale : on ne calcule donc que
-     7 valeurs, posées en variables CSS sur le calendrier (voir
-     .cal-day:nth-child dans styles.css), au lieu de mesurer et styler
-     371 cases à chaque événement scroll. */
+     semaine) ont la même position verticale, donc la même opacité : on
+     ne calcule que 7 valeurs, appliquées d'un coup avec un mask-image en
+     dégradé à paliers sur le calendrier. Une seule propriété écrite sur
+     un seul élément, au lieu de mesurer et styler 371 cases à chaque
+     événement scroll (et sans recalcul de style des 371 cases, ce que
+     provoquerait une variable CSS héritée). */
   var cal = null;
   var calStep = 0;
+  var calCell = 0;
+  var calMask = '';
 
   function initCalendarFade() {
     cal = qs('#calendrier');
     if (!cal || cal.children.length < 2) { cal = null; return; }
-    calStep = cal.children[1].getBoundingClientRect().top -
-              cal.children[0].getBoundingClientRect().top;
+    var r0 = cal.children[0].getBoundingClientRect();
+    calStep = cal.children[1].getBoundingClientRect().top - r0.top;
+    calCell = r0.height;
     updateCalendarFade();
   }
 
@@ -220,10 +225,17 @@
     if (!cal) return;
     var top = cal.getBoundingClientRect().top;
     var vh = window.innerHeight;
+    var stops = [];
     for (var r = 0; r < 7; r++) {
       var d = Math.abs(top + r * calStep - vh / 2);
-      cal.style.setProperty('--o' + r, Math.max(0.15, 1 - d / vh));
+      var a = 'rgba(0,0,0,' + Math.max(0.15, 1 - d / vh).toFixed(3) + ')';
+      stops.push(a + ' ' + (r * calStep) + 'px', a + ' ' + (r * calStep + calCell) + 'px');
     }
+    var mask = 'linear-gradient(' + stops.join(',') + ')';
+    if (mask === calMask) return; // loin de l'écran, les valeurs ne bougent plus
+    calMask = mask;
+    cal.style.webkitMaskImage = mask;
+    cal.style.maskImage = mask;
   }
 
   /* Un seul passage par image affichée, quel que soit le nombre
