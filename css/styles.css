@@ -1260,3 +1260,6 @@ a{color:var(--fg);text-decoration:none;opacity:.9}a:hover{opacity:1}
 .activity-legend .lvl-4{background:var(--lvl4)}
 .activity-legend span:first-child{margin-right:2px}
 .activity-legend span:last-child{margin-left:2px}
+
+/* --- Pages image --- */
+.image-wrapper img{display:block;max-width:100%;height:auto}
