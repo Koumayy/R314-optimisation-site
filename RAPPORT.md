@@ -7,7 +7,11 @@ Alix Nasri, BUT MMI Béziers
 
 ## 1. Conditions de mesure
 
-Tous les relevés ont été faits en navigation privée (pas d'extensions), cache désactivé dans l'onglet Réseau, rechargement avec Ctrl+Maj+R. Pour Lighthouse et PageSpeed Insights j'ai lancé chaque analyse trois fois et gardé la médiane, en mobile et en ordinateur. Le panneau Performances a été utilisé avec un ralentissement CPU x4, sur des enregistrements d'au moins 20 secondes en scrollant.
+J'ai utilisé trois sources :
+
+- PageSpeed Insights : 3 analyses par site, médiane gardée, en mobile et en ordinateur.
+- Lighthouse 12.8 en ligne de commande, avec Chrome 156 en navigation privée. C'est le même moteur que l'onglet Lighthouse des DevTools.
+- Pour le réseau et le scroll, un script qui pilote Chrome via le protocole des DevTools (CDP), avec cache désactivé et une fenêtre de 1350×940. Il relève chaque requête (taille, statut, durée), puis enregistre 25 s de scroll à la molette avec le CPU ralenti ×4 : les long tasks via `PerformanceObserver` et un profil CPU pour le bottom-up. Ce sont les mêmes données que les onglets Réseau et Performances, mises en tableau. Je l'ai fait comme ça pour avoir exactement les mêmes conditions avant et après.
 
 Les mesures de référence sont prises sur le site en ligne (GitHub Pages compresse le CSS/JS/HTML en gzip, pas le serveur local). Le serveur local m'a seulement servi à tester les corrections avant de pousser.
 
@@ -17,12 +21,12 @@ Autre chose que j'ai remarqué tout de suite : les temps (TBT surtout) varient �
 
 ## 2. Résultats avant / après
 
-Poids et requêtes : page d'accueil en ligne, premier affichage sans scroller. Le reste vient de PageSpeed Insights (Lighthouse 13.5), médiane de 3 analyses le 25/10/2026.
+Poids et requêtes : page d'accueil en ligne, fenêtre 1350×940, cache désactivé (captures `reseau-avant.png` / `reseau-apres.png`). Le reste vient de PageSpeed Insights (Lighthouse 13.5), médiane de 3 analyses le 25/10/2026.
 
 | Indicateur | Avant | Après | Écart |
 |---|---|---|---|
-| Poids transféré | 16,3 Mo | 129 Ko (fenêtre ~800 px, ça monte un peu sur grand écran et si on scrolle) | -99 % |
-| Requêtes | 19 (dont 1 en 404) | 10 | -9 |
+| Poids transféré | 16,7 Mo | 206 Ko | -99 % |
+| Requêtes | 22 (dont 1 en 404) | 14 | -8 |
 | Score mobile | 60 | 98 | +38 |
 | FCP mobile | 2,4 s | 0,8 s | -1,6 s |
 | LCP mobile | 67,1 s | 1,8 s | -65,3 s |
@@ -49,7 +53,25 @@ Avant, le score ordinateur passe de 62 à 46 entre deux essais sur la même page
 
 Le CLS était déjà à 0 (ou 0,021 sur un essai ordinateur) avant correction, donc les `width`/`height` n'ont pas fait bouger ce chiffre ici. Je les ai gardés quand même, ils évitent un saut de mise en page si une image arrive après le texte.
 
-Captures dans `audit/` : `psi-mobile-avant.jpg`, `psi-ordi-avant.jpg`, `psi-mobile-apres.jpg`, `psi-ordi-apres.jpg` (les essais médians), et tous les essais dans `audit/psi-3-essais/`.
+Lighthouse en local (un lancement, `lighthouse-*.png`) donne la même chose en plus marqué : mobile 28 → 97 (TBT 3 810 ms → 0), ordinateur 65 → 100. La machine est plus lente que les serveurs de Google, d'où le TBT mobile beaucoup plus haut.
+
+Scroll de 25 s avec CPU ×4 (`perf-scroll-avant.png` / `perf-scroll-apres.png`) :
+
+| | Avant | Après |
+|---|---|---|
+| Long tasks | 67 | 0 |
+| Temps bloquant cumulé | ≈ 9 200 ms | 0 ms |
+| Plus longue tâche | 261 ms | aucune > 50 ms |
+| Crans de molette pris en compte en 25 s | 122 | 195 |
+| 1re fonction du bottom-up | `getBoundingClientRect` (5 394 ms, appelée par revealCards) | `updateCalendarFade` (29 ms) |
+
+Le dernier point montre bien le problème : la page était tellement bloquée qu'un tiers des crans de molette ne passaient pas. Dans le bottom-up d'avant on voit aussi `_fp` d'analytics.js (861 ms) alors que le script est censé ne rien faire, et le code de ui-kit.min.js.
+
+Captures dans `audit/` :
+- PageSpeed : `psi-mobile-avant.jpg`, `psi-ordi-avant.jpg`, `psi-mobile-apres.jpg`, `psi-ordi-apres.jpg` (essais médians), tous les essais dans `audit/psi-3-essais/`
+- Lighthouse : `lighthouse-mobile-avant.png`, `lighthouse-ordi-avant.png`, `lighthouse-mobile-apres.png`, `lighthouse-ordi-apres.png`, plus la partie Diagnostics d'avant (`lighthouse-diagnostics-*.png`)
+- Réseau : `reseau-avant.png`, `reseau-apres.png`
+- Scroll et bottom-up : `perf-scroll-avant.png`, `perf-scroll-apres.png`
 
 ## 3. Problèmes identifiés
 
