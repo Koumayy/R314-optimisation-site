@@ -21,7 +21,7 @@ Poids et requêtes : onglet Réseau, page d'accueil, premier affichage sans scro
 
 | Indicateur | Avant | Après | Écart |
 |---|---|---|---|
-| Poids transféré | 16,3 Mo | ~0,22 Mo (~0,43 Mo si on scrolle toute la galerie) | -98 % |
+| Poids transféré | 16,3 Mo | 129 Ko en ligne (fenêtre ~800 px, ça monte un peu sur grand écran et si on scrolle) | -99 % |
 | Requêtes | 19 (dont 1 en 404) | 10 | -9 |
 | FCP (mobile) | à compléter | à compléter | |
 | LCP (mobile) | à compléter | à compléter | |
