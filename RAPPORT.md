@@ -1,9 +1,9 @@
 # Rapport TP R3.14 : optimisation de SlowSite
 
-Nom Prénom, BUT MMI Béziers
+Alix Nasri, BUT MMI Béziers
 
-- Dépôt (fork) : https://github.com/VOTRE-COMPTE/R314-optimisation-site
-- Site publié : https://VOTRE-COMPTE.github.io/R314-optimisation-site/
+- Dépôt (fork) : https://github.com/Koumayy/R314-optimisation-site
+- Site publié : https://koumayy.github.io/R314-optimisation-site/
 
 ## 1. Conditions de mesure
 
