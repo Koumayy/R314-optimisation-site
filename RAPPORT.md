@@ -17,20 +17,39 @@ Autre chose que j'ai remarqué tout de suite : les temps (TBT surtout) varient �
 
 ## 2. Résultats avant / après
 
-Poids et requêtes : onglet Réseau, page d'accueil, premier affichage sans scroller.
+Poids et requêtes : page d'accueil en ligne, premier affichage sans scroller. Le reste vient de PageSpeed Insights (Lighthouse 13.5), médiane de 3 analyses le 25/10/2026.
 
 | Indicateur | Avant | Après | Écart |
 |---|---|---|---|
-| Poids transféré | 16,3 Mo | 129 Ko en ligne (fenêtre ~800 px, ça monte un peu sur grand écran et si on scrolle) | -99 % |
+| Poids transféré | 16,3 Mo | 129 Ko (fenêtre ~800 px, ça monte un peu sur grand écran et si on scrolle) | -99 % |
 | Requêtes | 19 (dont 1 en 404) | 10 | -9 |
-| FCP (mobile) | à compléter | à compléter | |
-| LCP (mobile) | à compléter | à compléter | |
-| CLS (mobile) | à compléter | à compléter | |
-| TBT (mobile) | à compléter | à compléter | |
-| Score PSI mobile | à compléter | à compléter | |
-| Score PSI ordinateur | à compléter | à compléter | |
+| Score mobile | 60 | 98 | +38 |
+| FCP mobile | 2,4 s | 0,8 s | -1,6 s |
+| LCP mobile | 67,1 s | 1,8 s | -65,3 s |
+| TBT mobile | 160 ms | 0 ms | -160 ms |
+| CLS mobile | 0 | 0 | = |
+| Speed Index mobile | 17,6 s | 3,9 s | -13,7 s |
+| Score ordinateur | 60 | 100 | +40 |
+| FCP ordinateur | 0,9 s | 0,2 s | -0,7 s |
+| LCP ordinateur | 12,2 s | 0,4 s | -11,8 s |
+| TBT ordinateur | 190 ms | 0 ms | -190 ms |
+| CLS ordinateur | 0 | 0 | = |
+| Speed Index ordinateur | 4,6 s | 0,4 s | -4,2 s |
 
-Captures correspondantes dans `audit/` : `01-reseau-avant.png`, `02-lighthouse-mobile-avant.png`, `03-lighthouse-desktop-avant.png`, `04-performances-avant.png`, `05-bottom-up-avant.png`, `06-psi-mobile-avant.png`, `07-psi-desktop-avant.png`, puis les mêmes en `-apres`.
+Les 3 essais, pour montrer la variance :
+
+| | Essai 1 | Essai 2 | Essai 3 |
+|---|---|---|---|
+| Avant, mobile (score / TBT) | 56 / 280 ms | 60 / 160 ms | 62 / 100 ms |
+| Avant, ordinateur (score / TBT) | 60 / 190 ms | 62 / 150 ms | 46 / 440 ms |
+| Après, mobile (score / TBT) | 98 / 0 ms | 97 / 0 ms | 99 / 0 ms |
+| Après, ordinateur (score / TBT) | 100 / 0 ms | 100 / 0 ms | 100 / 0 ms |
+
+Avant, le score ordinateur passe de 62 à 46 entre deux essais sur la même page, avec un TBT qui triple. Après correction les essais sont quasi identiques. Le LCP mobile à 67 s vient sûrement des 3 Mo de img6 préchargée deux fois et de hero-bg, sur la connexion 4G lente simulée.
+
+Le CLS était déjà à 0 (ou 0,021 sur un essai ordinateur) avant correction, donc les `width`/`height` n'ont pas fait bouger ce chiffre ici. Je les ai gardés quand même, ils évitent un saut de mise en page si une image arrive après le texte.
+
+Captures dans `audit/` : `psi-mobile-avant.jpg`, `psi-ordi-avant.jpg`, `psi-mobile-apres.jpg`, `psi-ordi-apres.jpg` (les essais médians), et tous les essais dans `audit/psi-3-essais/`.
 
 ## 3. Problèmes identifiés
 
